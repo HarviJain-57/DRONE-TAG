@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>User Account - Drone Tag</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    .account-container {
+      max-width: 700px;
+      margin: 50px auto;
+      padding: 30px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      background-color: #f9f9f9;
+    }
+
+    .account-container h2 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .account-info {
+      font-size: 18px;
+      line-height: 1.8;
+    }
+
+    .account-info strong {
+      display: inline-block;
+      width: 200px;
+    }
+
+    .back-btn {
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    .back-btn a {
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+    }
+
+    .back-btn a:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="logo-title">
+      <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="Logo" class="logo">
+      <span class="site-name">DRONE TAG</span>
+    </div>
+
+
+  
+
+
+    <nav>
+      {# <a href="{{ url_for('home') }}">Home</a>
+      <a href="{{ url_for('dashboard') }}">Dashboard</a> #}
+      <a href="{{ url_for('aboutus') }}">About Us</a>
+      <a href="{{ url_for('account') }}">Account</a>
+    </nav>
+  </header>
+
+  <!-- Account Info Section -->
+  <div class="account-container">
+    <h2>User & Drone Registration Info</h2>
+    <div class="account-info">
+      <p><strong>Name:</strong> {{ user.username }}</p>
+      <p><strong>Email:</strong> {{ user.email }}</p>
+      <p><strong>Phone:</strong> {{ user.phone }}</p>
+       <hr style="border: none; border-top: 1px solid black; margin: 10px 0;">      <p><strong>Tracker ID:</strong> {{ user.tracker_id }}</p>
+      <p><strong>UIN:</strong> {{ user.uin }}</p>
+      <p><strong>Category:</strong> {{ user.category }}</p>
+      <p><strong>Application:</strong> {{ user.application }}</p>
+    </div>
+
+    <div class="back-btn">
+      <a href="{{ url_for('logout') }}">Log Out</a>
+    </div>
+  </div>
+</body>
+</html>

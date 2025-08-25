@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Drone Locations - Drone Tag</title>
+
+  <!-- Corrected CSS path -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <style>
+    #landing-map {
+      height: 500px;
+      width: 95%;
+      margin: 20px auto;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="logo-title">
+      <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="Logo" class="logo">
+      <span class="site-name">DRONE TAG </span>
+    </div>
+    <nav>
+      <a href="/">Home</a>
+      <a href="{{ url_for('register') }}">Register</a>
+
+      <a href="/aboutus">About Us</a>
+    </nav>
+  </header>
+
+  <!-- ✅ MAP CONTAINER -->
+  <main>
+    <div id="landing-map"></div>
+  </main>
+
+  <script>
+    const map = L.map('landing-map').setView([22.5, 72.5], 7); // Gujarat-centered
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+  </script>
+
+</body>
+</html>

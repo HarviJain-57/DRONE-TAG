@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Settings - Drone Tag</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    .settings-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 80vh;
+    }
+
+    .settings-form {
+      background: white;
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      width: 400px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .settings-form h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .settings-form label {
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .settings-form input {
+      padding: 8px;
+      margin-top: 5px;
+      font-size: 14px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    .settings-form button {
+      margin-top: 20px;
+      padding: 10px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .settings-form button:hover {
+      background-color: #0056b3;
+    }
+
+    .success-message {
+      color: green;
+      margin-top: 15px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo-title">
+      <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="Logo" class="logo">
+      <span class="site-name">DRONE TAG</span>
+    </div>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/aboutus">About Us</a>
+      <div class="user_logo">
+        <a href="/account">
+          <img src="{{ url_for('static', filename='images/profile.png') }}" class="profile" title="Your Account">
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="settings-container">
+  <form method="POST" action="/settings" class="settings-form">
+    <h2>Settings</h2>
+
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" value="{{ user.username }}" readonly>
+
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" value="{{ user.email }}">
+
+    <label for="phone">Phone:</label>
+    <input type="text" id="phone" name="phone" value="{{ user.phone }}">
+
+    <label for="password">New Password:</label>
+    <input type="password" id="password" name="password" placeholder="Enter new password">
+
+    <button type="submit">Update Settings</button>
+
+    {% if message %}
+      <p class="success-message">{{ message }}</p>
+    {% endif %}
+  </form>
+</main>
+
+</body>
+</html>

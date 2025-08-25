@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>About Us - Drone Tag</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f8;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #1f2937;
+      color: white;
+      padding: 15px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo-title {
+      display: flex;
+      align-items: center;
+    }
+
+    .logo-title img {
+      height: 40px;
+      margin-right: 10px;
+    }
+
+    .site-name {
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin-left: 20px;
+      font-size: 16px;
+    }
+
+    main {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 20px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    h1, h2 {
+      color: #1f2937;
+    }
+
+    p {
+      font-size: 16px;
+      line-height: 1.7;
+      color: #333;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      padding: 20px;
+      background-color: #1f2937;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo-title">
+      <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="Drone Tag Logo">
+      <span class="site-name">DRONE TAG</span>
+    </div>
+    <nav>
+      <a href="/">Home</a>
+      
+      <a href="/aboutus">About Us</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1>About Drone Tag</h1>
+    <p><strong>Drone Tag</strong> is an innovative real-time drone tracking and monitoring platform developed as part of the <strong>Abhyuday Bharat Project Pvt. Ltd.</strong>. It is designed to support mission-critical drone operations including surveillance, rescue, logistics, and agricultural mapping across various regions.</p>
+
+    <h2>Key Features:</h2>
+    <ul>
+      <li>🛰️ Real-time GPS tracking of drones with interactive maps</li>
+      <li>📍 Location-based visualization of drone paths and trajectories</li>
+      <li>🖼️ Live image feed or captured images from drone flights</li>
+      <li>🧭 Dual map view support: OpenStreetMap & Satellite view</li>
+      <li>📤 Exportable data in CSV format for audits and reports</li>
+      <li>🛡️ Role-based access & dashboard for registered users</li>
+    </ul>
+
+    <h2>How It Works:</h2>
+    <p>
+      Each drone is equipped with a GPS module and a unique Tracker ID. The system receives GPS coordinates and image data from the drone, which are processed through a backend server (built with Python Flask). These are then displayed in a user-friendly dashboard built using HTML, Leaflet.js, and JavaScript.
+    </p>
+    <p>
+      Users can enter the Tracker ID to visualize the drone's full path, view associated metadata like timestamp, latitude, longitude, and even export the entire flight history as a CSV file. The system can also be integrated with alert mechanisms and future AI enhancements.
+    </p>
+
+    <h2>Developed & Maintained By:</h2>
+    <p>
+      <strong>Abhyuday Bharat Project Pvt. Ltd.</strong><br>
+      A visionary tech-driven company empowering real-time applications in disaster management, smart logistics, surveillance, and public safety through drone and IoT-based platforms.
+    </p>
+  </main>
+
+  <footer>
+    &copy; 2025 Drone Tag | Abhyuday Bharat Project Pvt. Ltd. | All Rights Reserved
+  </footer>
+
+</body>
+</html>

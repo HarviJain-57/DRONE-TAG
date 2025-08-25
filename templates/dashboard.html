@@ -1,0 +1,1042 @@
+{# <!------TESTING CODE-----  //working code for date and time filter but filter is not implemented in backend>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Drone Tracker Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <style>
+    #map { height: 400px; width: 100%; margin-top: 20px; }
+    .input-section input, .input-section button {
+      padding: 8px; margin: 5px;
+    }
+    #export-btn { background-color: green; color: white; }
+
+    /* Status Messages */
+    #status-message {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+    }
+    .status-loading {
+      background-color: #e6f7ff;
+      color: #1890ff;
+    }
+    .status-success {
+      background-color: #f6ffed;
+      color: #52c41a;
+    }
+    .status-error {
+      background-color: #fff2f0;
+      color: #f5222d;
+    }
+    .status-warning {
+      background-color: #fffbe6;
+      color: #faad14;
+    }
+
+    /* Images Grid */
+    #images-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .image-container {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .image-container img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+    }
+    .image-info {
+      padding: 8px;
+      font-size: 12px;
+      color: #666;
+    }
+    .no-data-message {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
+
+    /* Map Popup */
+    .map-popup h4 {
+      margin: 0 0 5px 0;
+    }
+    .map-popup p {
+      margin: 3px 0;
+    }
+
+    /* Last Updated */
+    .last-updated {
+      text-align: right;
+      font-size: 12px;
+      color: #666;
+      padding: 5px 10px;
+    }
+
+
+
+
+
+
+ /* Map Marker Styles */
+.custom-icon {
+    background: transparent;
+    border: none;
+}
+
+/* Start Marker (Green with pulse animation) */
+.green-icon {
+    animation: pulse-green 2s infinite;
+}
+.green-icon > div {
+    width: 24px;
+    height: 24px;
+    background: #2ecc71;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px rgba(46, 204, 113, 0.5);
+    position: relative;
+}
+
+/* End Marker (Red) */
+.red-icon > div {
+    width: 24px;
+    height: 24px;
+    background: #e74c3c;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.5);
+    position: relative;
+}
+
+/* Waypoint Marker (Blue) */
+.blue-icon > div {
+    width: 16px;
+    height: 16px;
+    background: #3498db;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.5);
+    position: relative;
+}
+
+/* Pulse animation for start marker */
+@keyframes pulse-green {
+    0% {
+        box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(46, 204, 113, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(46, 204, 113, 0);
+    }
+}
+
+/* Map Popup Styles */
+.map-popup {
+    font-family: Arial, sans-serif;
+    min-width: 200px;
+}
+.map-popup h4 {
+    margin: 0 0 5px;
+    color: #2c3e50;
+    font-size: 16px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+.map-popup p {
+    margin: 5px 0;
+    font-size: 13px;
+    line-height: 1.4;
+}
+.map-popup strong {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+/* Status Message Styles */
+.status-loading {
+    color: #3498db;
+    background-color: #ebf5fb;
+    padding: 10px;
+    border-radius: 4px;
+    border-left: 4px solid #3498db;
+}
+.status-success {
+    color: #27ae60;
+    background-color: #eafaf1;
+    padding: 10px;
+    border-radius: 4px;
+    border-left: 4px solid #27ae60;
+}
+.status-error {
+    color: #e74c3c;
+    background-color: #fdedec;
+    padding: 10px;
+    border-radius: 4px;
+    border-left: 4px solid #e74c3c;
+}
+.status-warning {
+    color: #f39c12;
+    background-color: #fef5e7;
+    padding: 10px;
+    border-radius: 4px;
+    border-left: 4px solid #f39c12;
+}
+
+/* Image Gallery Styles */
+.image-container {
+    position: relative;
+    margin-bottom: 15px;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.3s;
+}
+.image-container:hover {
+    transform: translateY(-3px);
+}
+.image-container img {
+    width: 100%;
+    height: auto;
+    display: block;
+    transition: opacity 0.3s;
+}
+.image-container:hover img {
+    opacity: 0.9;
+}
+.image-info {
+    padding: 8px;
+    background: #f8f9fa;
+    font-size: 12px;
+    color: #7f8c8d;
+}
+
+/* No Data Message */
+.no-data-message {
+    text-align: center;
+    padding: 20px;
+    color: #7f8c8d;
+    font-style: italic;
+}
+
+/* Last Updated Text */
+.last-updated {
+    font-size: 12px;
+    color: #7f8c8d;
+    text-align: right;
+    padding: 5px 10px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    margin-top: 5px;
+}
+
+/* Drone Info Table */
+#drone-info-body td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #eee;
+}
+#drone-info-body tr:last-child td {
+    border-bottom: none;
+}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo-title">
+      <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="Logo" class="logo">
+      <span class="site-name">DRONE TAG</span>
+    </div>
+<nav>
+
+
+ 
+
+    <!-- Home Icon -->
+   <a href="/index"    style="text-decoration: none;  font-size: 18px; font-weight: bold; color:white;">   Home</a>
+
+    <!-- User Profile Dropdown -->
+    <div class="user_logo dropdown">
+      <img src="{{ url_for('static', filename='images/profile.png') }}" alt="Profile" class="profile dropdown-toggle" title="Your Account" id="dropdownMenu" style="cursor: pointer;">
+      <div class="dropdown-menu" id="dropdownContent">
+        <a href="/account">Your Account</a>
+        <a href="/settings">Settings</a>
+        <a href="/support">Support</a>
+        <a href="/help">Help</a>
+        <a href="/logout">Logout</a>
+      </div>
+    </div>
+  </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          </nav>
+
+  </header>
+
+  <main>
+    <div class="input-section">
+      <input type="text" id="tracker-id" placeholder="Enter Tracker ID" />
+      <button id="fetch-btn">Fetch Data</button>
+      <button id="export-btn">Export CSV</button>
+    </div>
+
+<!-- Date and Time Filter -->
+<div class="date-filter">
+  <label for="start-date">Start:</label>
+  <input type="datetime-local" id="start-date" name="start-date">
+
+  <label for="end-date">End:</label>
+  <input type="datetime-local" id="end-date" name="end-date">
+
+  <button id="filter-btn">Filter</button>
+</div> 
+
+    <div id="status-message"></div>
+    <div class="last-updated"></div>
+
+    <table class="info-table">
+      <thead>
+        <tr>
+          <th>Tracker ID</th>
+          <th>Drone UIN Number</th>
+          <th>Drone Category</th>
+          <th>Drone Application</th>
+        </tr>
+      </thead>
+      <tbody id="drone-info-body"></tbody>
+    </table>
+
+    <div id="map"></div>
+    <div id="images-grid"></div>
+  </main>
+
+  <!-- Auto-fetch if tracker_id passed via URL -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const trackerId = urlParams.get('tracker_id');
+      if (trackerId) {
+        const trackerInput = document.getElementById('tracker-id');
+        trackerInput.value = trackerId;
+        document.getElementById('fetch-btn').click();
+      }
+    });
+  </script>
+
+  <script src="{{ url_for('static', filename='js/fetchdata.js') }}"></script>
+
+
+<!-- drop down menu -->
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const profileIcon = document.querySelector('.dropdown-toggle');
+    const dropdownMenu = document.getElementById('dropdownContent');
+
+    profileIcon.addEventListener('click', function (e) {
+      e.preventDefault();
+      dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function (event) {
+      if (!event.target.closest('.dropdown')) {
+        dropdownMenu.style.display = 'none';
+      }
+    });
+  });
+</script>
+
+</body>
+</html> #}
+
+
+
+
+
+
+
+
+
+<!-- Original Code  -->
+{# <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Drone Tracker Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <style>
+    #map { height: 400px; width: 100%; margin-top: 20px; }
+    .input-section input, .input-section button {
+      padding: 8px; margin: 5px;
+    }
+    #export-btn { background-color: green; color: white; }
+
+    /* Status Messages */
+    #status-message {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+    }
+    .status-loading {
+      background-color: #e6f7ff;
+      color: #1890ff;
+    }
+    .status-success {
+      background-color: #f6ffed;
+      color: #52c41a;
+    }
+    .status-error {
+      background-color: #fff2f0;
+      color: #f5222d;
+    }
+    .status-warning {
+      background-color: #fffbe6;
+      color: #faad14;
+    }
+
+    /* Images Grid */
+    #images-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .image-container {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .image-container img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+    }
+    .image-info {
+      padding: 8px;
+      font-size: 12px;
+      color: #666;
+    }
+    .no-data-message {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
+
+    /* Map Popup */
+    .map-popup h4 {
+      margin: 0 0 5px 0;
+    }
+    .map-popup p {
+      margin: 3px 0;
+    }
+
+    /* Last Updated */
+    .last-updated {
+      text-align: right;
+      font-size: 12px;
+      color: #666;
+      padding: 5px 10px;
+    }
+
+    /* Map Marker Styles */
+    .custom-icon {
+        background: transparent;
+        border: none;
+    }
+
+    /* Start Marker (Green with pulse animation) */
+    .green-icon {
+        animation: pulse-green 2s infinite;
+    }
+    .green-icon > div {
+        width: 24px;
+        height: 24px;
+        background: #2ecc71;
+        border: 3px solid #fff;
+        border-radius: 50%;
+        box-shadow: 0 0 0 4px rgba(46, 204, 113, 0.5);
+        position: relative;
+    }
+
+    /* End Marker (Red) */
+    .red-icon > div {
+        width: 24px;
+        height: 24px;
+        background: #e74c3c;
+        border: 3px solid #fff;
+        border-radius: 50%;
+        box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.5);
+        position: relative;
+    }
+
+    /* Waypoint Marker (Blue) */
+    .blue-icon > div {
+        width: 16px;
+        height: 16px;
+        background: #3498db;
+        border: 2px solid #fff;
+        border-radius: 50%;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.5);
+        position: relative;
+    }
+
+    /* Pulse animation for start marker */
+    @keyframes pulse-green {
+        0% {
+            box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(46, 204, 113, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(46, 204, 113, 0);
+        }
+    }
+
+    /* Map Popup Styles */
+    .map-popup {
+        font-family: Arial, sans-serif;
+        min-width: 200px;
+    }
+    .map-popup h4 {
+        margin: 0 0 5px;
+        color: #2c3e50;
+        font-size: 16px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 5px;
+    }
+    .map-popup p {
+        margin: 5px 0;
+        font-size: 13px;
+        line-height: 1.4;
+    }
+    .map-popup strong {
+        color: #2c3e50;
+        font-weight: 600;
+    }
+
+    /* Status Message Styles */
+    .status-loading {
+        color: #3498db;
+        background-color: #ebf5fb;
+        padding: 10px;
+        border-radius: 4px;
+        border-left: 4px solid #3498db;
+    }
+    .status-success {
+        color: #27ae60;
+        background-color: #eafaf1;
+        padding: 10px;
+        border-radius: 4px;
+        border-left: 4px solid #27ae60;
+    }
+    .status-error {
+        color: #e74c3c;
+        background-color: #fdedec;
+        padding: 10px;
+        border-radius: 4px;
+        border-left: 4px solid #e74c3c;
+    }
+    .status-warning {
+        color: #f39c12;
+        background-color: #fef5e7;
+        padding: 10px;
+        border-radius: 4px;
+        border-left: 4px solid #f39c12;
+    }
+
+    /* Image Gallery Styles */
+    .image-container {
+        position: relative;
+        margin-bottom: 15px;
+        border-radius: 4px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: transform 0.3s;
+    }
+    .image-container:hover {
+        transform: translateY(-3px);
+    }
+    .image-container img {
+        width: 100%;
+        height: auto;
+        display: block;
+        transition: opacity 0.3s;
+    }
+    .image-container:hover img {
+        opacity: 0.9;
+    }
+    .image-info {
+        padding: 8px;
+        background: #f8f9fa;
+        font-size: 12px;
+        color: #7f8c8d;
+    }
+
+    /* No Data Message */
+    .no-data-message {
+        text-align: center;
+        padding: 20px;
+        color: #7f8c8d;
+        font-style: italic;
+    }
+
+    /* Last Updated Text */
+    .last-updated {
+        font-size: 12px;
+        color: #7f8c8d;
+        text-align: right;
+        padding: 5px 10px;
+        background: #f8f9fa;
+        border-radius: 4px;
+        margin-top: 5px;
+    }
+
+    /* Drone Info Table */
+    #drone-info-body td {
+        padding: 8px 12px;
+        border-bottom: 1px solid #eee;
+    }
+    #drone-info-body tr:last-child td {
+        border-bottom: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo-title">
+      <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="Logo" class="logo">
+      <span class="site-name">DRONE TAG</span>
+    </div>
+    <nav>
+      <!-- Home Icon -->
+      <a href="/index" style="text-decoration: none; font-size: 18px; font-weight: bold; color:white;">Home</a>
+
+      <!-- User Profile Dropdown -->
+      <div class="user_logo dropdown">
+        <img src="{{ url_for('static', filename='images/profile.png') }}" alt="Profile" class="profile dropdown-toggle" title="Your Account" id="dropdownMenu" style="cursor: pointer;">
+        <div class="dropdown-menu" id="dropdownContent">
+          <a href="/account">Your Account</a>
+          <a href="/settings">Settings</a>
+          <a href="/support">Support</a>
+          <a href="/help">Help</a>
+          <a href="/logout">Logout</a>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <div class="input-section">
+      <input type="text" id="tracker-id" placeholder="Enter Tracker ID" />
+      <button id="fetch-btn">Fetch Data</button>
+      <button id="export-btn">Export CSV</button>
+    </div>
+
+    <div id="status-message"></div>
+    <div class="last-updated"></div>
+
+    <table class="info-table">
+      <thead>
+        <tr>
+          <th>Tracker ID</th>
+          <th>Drone UIN Number</th>
+          <th>Drone Category</th>
+          <th>Drone Application</th>
+        </tr>
+      </thead>
+      <tbody id="drone-info-body"></tbody>
+    </table>
+
+    <div id="map"></div>
+    <div id="images-grid"></div>
+  </main>
+
+  <!-- Auto-fetch if tracker_id passed via URL -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const trackerId = urlParams.get('tracker_id');
+      if (trackerId) {
+        const trackerInput = document.getElementById('tracker-id');
+        trackerInput.value = trackerId;
+        document.getElementById('fetch-btn').click();
+      }
+    });
+  </script>
+
+  <script src="{{ url_for('static', filename='js/fetchdata.js') }}"></script>
+
+  <!-- drop down menu -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const profileIcon = document.querySelector('.dropdown-toggle');
+      const dropdownMenu = document.getElementById('dropdownContent');
+
+      profileIcon.addEventListener('click', function (e) {
+        e.preventDefault();
+        dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', function (event) {
+        if (!event.target.closest('.dropdown')) {
+          dropdownMenu.style.display = 'none';
+        }
+      });
+    });
+  </script>
+</body>
+</html> #}
+
+
+
+
+
+
+
+
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Drone Tracker Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <style>
+    #map { height: 400px; width: 100%; margin-top: 20px; }
+    .input-section input, .input-section button {
+      padding: 8px; margin: 5px;
+    }
+    #export-btn { background-color: green; color: white; }
+
+    /* Status Messages */
+    #status-message {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+    }
+    .status-loading {
+      background-color: #e6f7ff;
+      color: #1890ff;
+    }
+    .status-success {
+      background-color: #f6ffed;
+      color: #52c41a;
+    }
+    .status-error {
+      background-color: #fff2f0;
+      color: #f5222d;
+    }
+    .status-warning {
+      background-color: #fffbe6;
+      color: #faad14;
+    }
+
+    /* Images Grid */
+    #images-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .image-container {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .image-container img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+    }
+    .image-info {
+      padding: 8px;
+      font-size: 12px;
+      color: #666;
+    }
+    .no-data-message {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
+
+    /* Map Popup */
+    .map-popup h4 {
+      margin: 0 0 5px 0;
+    }
+    .map-popup p {
+      margin: 3px 0;
+    }
+
+    /* Last Updated */
+    .last-updated {
+      text-align: right;
+      font-size: 12px;
+      color: #666;
+      padding: 5px 10px;
+    }
+
+    /* Map Marker Styles */
+    .custom-icon {
+        background: transparent;
+        border: none;
+    }
+
+    /* Start Marker (Green with pulse animation) */
+    .green-icon {
+        animation: pulse-green 2s infinite;
+    }
+    .green-icon > div {
+        width: 24px;
+        height: 24px;
+        background: #2ecc71;
+        border: 3px solid #fff;
+        border-radius: 50%;
+        box-shadow: 0 0 0 4px rgba(46, 204, 113, 0.5);
+        position: relative;
+    }
+
+    /* End Marker (Red) */
+    .red-icon > div {
+        width: 24px;
+        height: 24px;
+        background: #e74c3c;
+        border: 3px solid #fff;
+        border-radius: 50%;
+        box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.5);
+        position: relative;
+    }
+
+    /* Waypoint Marker (Blue) */
+    .blue-icon > div {
+        width: 16px;
+        height: 16px;
+        background: #3498db;
+        border: 2px solid #fff;
+        border-radius: 50%;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.5);
+        position: relative;
+    }
+
+    /* Pulse animation for start marker */
+    @keyframes pulse-green {
+        0% {
+            box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(46, 204, 113, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(46, 204, 113, 0);
+        }
+    }
+
+    /* Map Popup Styles */
+    .map-popup {
+        font-family: Arial, sans-serif;
+        min-width: 200px;
+    }
+    .map-popup h4 {
+        margin: 0 0 5px;
+        color: #2c3e50;
+        font-size: 16px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 5px;
+    }
+    .map-popup p {
+        margin: 5px 0;
+        font-size: 13px;
+        line-height: 1.4;
+    }
+    .map-popup strong {
+        color: #2c3e50;
+        font-weight: 600;
+    }
+
+    /* Status Message Styles */
+    .status-loading {
+        color: #3498db;
+        background-color: #ebf5fb;
+        padding: 10px;
+        border-radius: 4px;
+        border-left: 4px solid #3498db;
+    }
+    .status-success {
+        color: #27ae60;
+        background-color: #eafaf1;
+        padding: 10px;
+        border-radius: 4px;
+        border-left: 4px solid #27ae60;
+    }
+    .status-error {
+        color: #e74c3c;
+        background-color: #fdedec;
+        padding: 10px;
+        border-radius: 4px;
+        border-left: 4px solid #e74c3c;
+    }
+    .status-warning {
+        color: #f39c12;
+        background-color: #fef5e7;
+        padding: 10px;
+        border-radius: 4px;
+        border-left: 4px solid #f39c12;
+    }
+
+    /* Image Gallery Styles */
+    .image-container {
+        position: relative;
+        margin-bottom: 15px;
+        border-radius: 4px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: transform 0.3s;
+    }
+    .image-container:hover {
+        transform: translateY(-3px);
+    }
+    .image-container img {
+        width: 100%;
+        height: auto;
+        display: block;
+        transition: opacity 0.3s;
+    }
+    .image-container:hover img {
+        opacity: 0.9;
+    }
+    .image-info {
+        padding: 8px;
+        background: #f8f9fa;
+        font-size: 12px;
+        color: #7f8c8d;
+    }
+
+    /* No Data Message */
+    .no-data-message {
+        text-align: center;
+        padding: 20px;
+        color: #7f8c8d;
+        font-style: italic;
+    }
+
+    /* Last Updated Text */
+    .last-updated {
+        font-size: 12px;
+        color: #7f8c8d;
+        text-align: right;
+        padding: 5px 10px;
+        background: #f8f9fa;
+        border-radius: 4px;
+        margin-top: 5px;
+    }
+
+    /* Drone Info Table */
+    #drone-info-body td {
+        padding: 8px 12px;
+        border-bottom: 1px solid #eee;
+    }
+    #drone-info-body tr:last-child td {
+        border-bottom: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo-title">
+      <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="Logo" class="logo">
+      <span class="site-name">DRONE TAG</span>
+    </div>
+    <nav>
+      <!-- Home Icon -->
+      <a href="/index" style="text-decoration: none; font-size: 18px; font-weight: bold; color:white;">Home</a>
+
+      <!-- User Profile Dropdown -->
+      <div class="user_logo dropdown">
+        <img src="{{ url_for('static', filename='images/profile.png') }}" alt="Profile" class="profile dropdown-toggle" title="Your Account" id="dropdownMenu" style="cursor: pointer;">
+        <div class="dropdown-menu" id="dropdownContent">
+          <a href="/account">Your Account</a>
+          <a href="/settings">Settings</a>
+          <a href="/support">Support</a>
+          <a href="/help">Help</a>
+          <a href="/logout">Logout</a>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+   <div class="input-section">
+  <input type="text" id="tracker-id" placeholder="Enter Tracker ID" />
+  <button id="fetch-btn">Fetch Data</button>
+  <button id="export-btn">Export CSV</button>
+  <button id="export-images-btn">Export Images</button> <!-- NEW -->
+</div>
+
+    <div id="status-message"></div>
+    <div class="last-updated"></div>
+
+    <table class="info-table">
+      <thead>
+        <tr>
+          <th>Tracker ID</th>
+          <th>Drone UIN Number</th>
+          <th>Drone Category</th>
+          <th>Drone Application</th>
+        </tr>
+      </thead>
+      <tbody id="drone-info-body"></tbody>
+    </table>
+    <div id="map" style="height:600px;"></div>
+    <div id="images-grid"></div>
+  </main>
+
+  <!-- Auto-fetch if tracker_id passed via URL -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const trackerId = urlParams.get('tracker_id');
+      if (trackerId) {
+        const trackerInput = document.getElementById('tracker-id');
+        trackerInput.value = trackerId;
+        document.getElementById('fetch-btn').click();
+      }
+    });
+  </script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+  <script src="{{ url_for('static', filename='js/fetchdata.js') }}"></script>
+
+  <!-- drop down menu -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const profileIcon = document.querySelector('.dropdown-toggle');
+      const dropdownMenu = document.getElementById('dropdownContent');
+
+      profileIcon.addEventListener('click', function (e) {
+        e.preventDefault();
+        dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', function (event) {
+        if (!event.target.closest('.dropdown')) {
+          dropdownMenu.style.display = 'none';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

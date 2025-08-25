@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>User & Drone Registration</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+<style>
+  /* Form Container */
+  #register-form {
+    max-width: 400px;
+    margin: 60px auto;
+    padding: 30px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.1); /* Light transparent overlay */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px); /* For Safari */
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    color: #fff;
+  }
+
+  /* Hide all steps initially */
+  .form-step {
+    display: none;
+  }
+
+  /* Show active step */
+  .form-step.active {
+    display: block;
+  }
+
+  /* Input Styling */
+  input {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0 15px;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+  }
+
+  input:invalid {
+    border: 1px solid black;
+  }
+
+  /* Next Button */
+  #next-btn {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    margin-top: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-weight: bold;
+  }
+
+  #next-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  /* Error Message */
+  .error-message {
+    color: red;
+    font-size: 0.8em;
+    margin-top: -8px;
+    margin-bottom: 8px;
+  }
+
+  /* Flash Alerts */
+  .alert {
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+  }
+
+  .alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+
+  .alert-success {
+    background-color: #d4edda;
+    color: #155724;
+  }
+
+  /* Optional: Make form content responsive */
+  @media (max-width: 500px) {
+    #register-form {
+      margin: 20px;
+      padding: 20px;
+    }
+  }
+</style>
+
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="logo-title">
+      <img src="{{ url_for('static', filename='images/logo.svg') }}" class="logo" />
+      <span class="site-name">Drone Tag Portal</span>
+    </div>
+  </header>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  
+<!-- Multi-Step Form -->
+<form method="POST" action="{{ url_for('register') }}" id="register-form">
+    
+    <!-- Step 1: User Registration -->
+<div class="form-step active" id="step-1">
+  <h2>User Registration</h2>
+
+  <input type="text" name="username" id="username" placeholder="User-Name" required><br>
+  <div id="username-error" class="error-message"></div>
+
+  <input type="email" name="email" id="email" placeholder="Email" required><br>
+  <div id="email-error" class="error-message"></div>
+
+  <input type="text" name="phone" id="phone" placeholder="Phone" required><br>
+  <div id="phone-error" class="error-message"></div>
+
+  <input type="password" name="password" id="password" placeholder="Password" required><br>
+  <div id="password-error" class="error-message"></div>
+
+  <button type="button" id="next-btn">Next</button>
+</div>
+
+
+    <!-- Step 2: Drone Registration -->
+    <div class="form-step" id="step-2">
+      <h2>Drone Registration</h2>
+      <input type="text" name="tracker_id" placeholder="Tracker ID" required><br>
+      <input type="text" name="uin" placeholder="UIN" required><br>
+      <input type="text" name="category" placeholder="Category" required><br>
+      <input type="text" name="application" placeholder="Application" required><br>
+      <button type="submit">Register</button>
+    </div>
+
+    <!-- Redirect to Login -->
+    <p style="margin-top: 10px;">Already have an account? 
+      <a href="/login">Login here</a>
+    </p>
+  </form>
+
+  <!-- JavaScript -->
+ <script>
+
+//background imge
+  document.addEventListener("DOMContentLoaded", function () {
+  document.body.style.backgroundImage = "url('{{ url_for('static', filename='images/drone_field.png') }}')";
+  document.body.style.backgroundSize = "cover";
+  document.body.style.backgroundRepeat = "no-repeat";
+  document.body.style.backgroundPosition = "center center";
+  document.body.style.backgroundAttachment = "fixed";
+});
+
+
+
+  const username = document.getElementById('username');
+  const email = document.getElementById('email');
+  const phone = document.getElementById('phone');
+  const password = document.getElementById('password');
+  const nextBtn = document.getElementById('next-btn');
+
+  // Helper: Set error message for specific input
+  function showError(inputId, message) {
+    document.getElementById(`${inputId}-error`).textContent = message;
+  }
+
+  // Clear all previous error messages
+  function clearErrors() {
+    ['username', 'email', 'phone', 'password'].forEach(id => {
+      showError(id, '');
+    });
+  }
+
+  // Validation functions
+  function isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  function isValidPhone(phone) {
+    return /^\d{10}$/.test(phone);
+  }
+
+  function isValidPassword(password) {
+    return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/.test(password);
+  }
+
+  nextBtn.addEventListener('click', (e) => {
+    e.preventDefault(); // prevent accidental form submission
+    clearErrors();
+
+    let valid = true;
+
+    if (username.value.trim() === '') {
+      showError('username', 'Username is required.');
+      valid = false;
+    }
+
+    if (!isValidEmail(email.value)) {
+      showError('email', 'Please enter a valid email address.');
+      valid = false;
+    }
+
+    if (!isValidPhone(phone.value)) {
+      showError('phone', 'Phone number must be exactly 10 digits.');
+      valid = false;
+    }
+
+    if (!isValidPassword(password.value)) {
+      showError('password', 'Password must be at least 6 characters, include uppercase, lowercase, and a number.');
+      valid = false;
+    }
+
+    if (valid) {
+      // Go to Step 2
+      document.getElementById('step-1').classList.remove('active');
+      document.getElementById('step-2').classList.add('active');
+    }
+  });
+
+
+
+
+</script>
+
+
+</body>
+</html> 
+
+
+

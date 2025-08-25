@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Drone Locations - Drone Tag</title>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <style>
+    #landing-map {
+      height: 500px;
+      width: 95%;
+      margin: 20px auto;
+    }
+
+    .filter-toggle {
+      cursor: pointer;
+      font-weight: bold;
+      color: #0b0b0cff;
+      padding: 8px 15px;
+      background-color: #f1f1f1;
+      border-radius: 5px;
+      display: inline-block;
+    }
+
+    .filter-container {
+      position: relative;
+      display: inline-block;
+      margin: 10px 20px;
+    }
+
+   .filter-panel {
+  position: absolute;
+  top: 60px;              /* Adjust to align just below the Filters button */
+  left: 20px;             /* Same as button left margin */
+  z-index: 2000;
+  width: 250px;
+  background: #fff;
+  border: 1px solid #ccc;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+  display: none;
+}
+
+
+
+    .filter-panel label {
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .filter-panel select,
+    .filter-panel button {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    .filter-panel button {
+      background-color: #0074e4;
+      color: white;
+      border: none;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="logo-title">
+      <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="Logo" class="logo">
+      <span class="site-name">DRONE TAG</span>
+    </div>
+    <nav>
+      <a href="/aboutus">About Us</a>
+      <div class="user_logo dropdown">
+        <img src="{{ url_for('static', filename='images/profile.png') }}" alt="Profile" class="profile dropdown-toggle" title="Your Account" id="dropdownMenu" style="cursor: pointer;">
+        <div class="dropdown-menu" id="dropdownContent">
+          <a href="/account">Your Account</a>
+          <a href="/settings">Settings</a>
+          <a href="/support">Support</a>
+          <a href="/help">Help</a>
+          <a href="/logout">Logout</a>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Filter Dropdown -->
+  <div class="filter-container">
+    <div class="filter-toggle" onclick="toggleFilter()">☰ Filters</div>
+    <div class="filter-panel" id="filterPanel">
+      <label for="application">Application:</label>
+      <select id="application">
+        <option value="">All</option>
+        <option value="Surveillance">Surveillance</option>
+        <option value="Agriculture">Agriculture</option>
+        <option value="Photography">Photography</option>
+        <option value="Racing">Racing</option>
+      </select>
+
+      <label for="autonomy">Autonomy:</label>
+      <select id="autonomy">
+        <option value="">All</option>
+        <option value="Manual">Manual</option>
+        <option value="Fully Autonomous">Fully Autonomous</option>
+        <option value="Partially Autonomous">Partially Autonomous</option>
+      </select>
+
+      <label for="range">Range:</label>
+      <select id="range">
+        <option value="">All</option>
+        <option value="Close">Close Range</option>
+        <option value="Short">Short Range</option>
+        <option value="Mid">Mid Range</option>
+        <option value="Long">Long Range</option>
+      </select>
+
+      <button onclick="applyFilters()">Apply</button>
+    </div>
+  </div>
+
+  <!-- Map -->
+  <main>
+    <div id="landing-map"></div>
+  </main>
+
+  <!-- Map & Filter Logic -->
+  <script>
+    function toggleFilter() {
+      const panel = document.getElementById('filterPanel');
+      panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+    }
+
+    // Close filter panel if clicked outside
+    document.addEventListener('click', function (event) {
+      const filterContainer = document.querySelector('.filter-container');
+      const filterPanel = document.getElementById('filterPanel');
+
+      if (!filterContainer.contains(event.target)) {
+        filterPanel.style.display = 'none';
+      }
+    });
+
+    const map = L.map('landing-map').setView([22.5, 72.5], 7);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const drones = [
+     // { city: "Surat", lat: 21.1702, lng: 72.8311, tracker_id: "SURAT123", application: "Surveillance", autonomy: "Manual", range: "Short" },
+      //{ city: "Rajkot", lat: 22.3039, lng: 70.8022, tracker_id: "RAJKOT456", application: "Agriculture", autonomy: "Fully Autonomous", range: "Long" }, 
+      { city: "Ahmedabad", lat: 23.0225, lng: 72.5714, tracker_id: "AB_001", application: "Photography", autonomy: "Partially Autonomous", range: "Mid" }
+    ];
+
+    const markers = [];
+
+    drones.forEach(drone => {
+      const marker = L.marker([drone.lat, drone.lng]).addTo(map)
+        .bindPopup(`<b>${drone.city}</b><br>Click to Track`)
+        .on('click', () => window.location.href = `/dashboard?tracker_id=${drone.tracker_id}`);
+
+      marker.options.droneData = drone;
+      markers.push(marker);
+    });
+
+    function applyFilters() {
+      const app = document.getElementById('application').value;
+      const auto = document.getElementById('autonomy').value;
+      const range = document.getElementById('range').value;
+
+      markers.forEach(marker => {
+        const d = marker.options.droneData;
+        const matches =
+          (!app || d.application === app) &&
+          (!auto || d.autonomy === auto) &&
+          (!range || d.range === range);
+
+        if (matches) {
+          map.addLayer(marker);
+        } else {
+          map.removeLayer(marker);
+        }
+      });
+
+      document.getElementById('filterPanel').style.display = 'none'; // hide after applying
+    }
+  </script>
+
+  <!-- Profile Dropdown Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const profileIcon = document.querySelector('.dropdown-toggle');
+      const dropdownMenu = document.getElementById('dropdownContent');
+
+      profileIcon.addEventListener('click', function (e) {
+        e.preventDefault();
+        dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+      });
+
+      document.addEventListener('click', function (event) {
+        if (!event.target.closest('.dropdown')) {
+          dropdownMenu.style.display = 'none';
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>

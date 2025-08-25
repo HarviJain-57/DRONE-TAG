@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Support - Drone Tag</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <header>
+    <div class="logo-title">
+      <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="Logo" class="logo">
+      <span class="site-name">DRONE TAG</span>
+    </div>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/aboutus">About Us</a>
+      <div class="user_logo">
+        <a href="/account">
+          <img src="{{ url_for('static', filename='images/profile.png') }}" class="profile" title="Your Account">
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <h2>Support</h2>
+    <p>If you're experiencing issues or need help, contact our support team.</p>
+
+    <p><strong>Email:</strong> support@dronetag.com</p>
+    <p><strong>Phone:</strong> +91-12345-67890</p>
+    <p><strong>Working Hours:</strong> Mon-Fri, 9 AM to 6 PM IST</p>
+
+    <p>You can also visit the <a href="/help">Help</a> page for FAQs.</p>
+  </main>
+</body>
+</html>
